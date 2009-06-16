@@ -399,6 +399,24 @@ class HttpResponse(object):
             raise Exception("This %s instance cannot tell its position" % self.__class__)
         return sum([len(chunk) for chunk in self._container])
 
+class HttpResponseSendFile(HttpResponse):
+    def __init__(self, path_to_file, content_type=None):
+        HttpResponse.__init__(self)
+        if not content_type:
+            from mimetypes import guess_type
+            content_type = guess_type(path_to_file)[0]
+            if content_type == None: # probably windows w/o proper mimetype lookup
+                content_type = "application/octet-stream"
+        self['Content-Type'] = content_type
+        self.sendfile_filename = path_to_file
+        self.block_size = 8192
+        self.status_code = 200
+        # compatibility; fake being a regular HttpResponse if needed
+        self['Content-Length'] = os.path.getsize(path_to_file)
+        self._container = open(path_to_file)
+        self._is_string = False
+        self['Content-Encoding'] = '' # FIX for Gzip middleware
+
 class HttpResponseRedirect(HttpResponse):
     status_code = 302
 

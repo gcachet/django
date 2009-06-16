@@ -209,6 +209,9 @@ class ModPythonHandler(BaseHandler):
 
         # Convert our custom HttpResponse object back into the mod_python req.
         req.content_type = response['Content-Type']
+        if hasattr(response, 'sendfile_filename'):
+            req.sendfile(response.sendfile_filename)
+            return 0
         for key, value in response.items():
             if key != 'content-type':
                 req.headers_out[str(key)] = str(value)

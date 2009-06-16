@@ -252,9 +252,20 @@ class WSGIHandler(base.BaseHandler):
         except KeyError:
             status_text = 'UNKNOWN STATUS CODE'
         status = '%s %s' % (response.status_code, status_text)
+
+        if hasattr(response, 'sendfile_filename') and response.has_header('Content-Length'):
+            del response['Content-Length']
         response_headers = [(str(k), str(v)) for k, v in response.items()]
         for c in response.cookies.values():
             response_headers.append(('Set-Cookie', str(c.output(header=''))))
         start_response(status, response_headers)
+        if hasattr(response, 'sendfile_filename'):
+            filelike = open(response.sendfile_filename, 'rb')
+            block_size = response.block_size
+            if 'wsgi.file_wrapper' in environ:
+                return environ['wsgi.file_wrapper'](filelike, block_size)
+            else:
+                return iter(lambda: filelike.read(block_size), '')
+
         return response
 

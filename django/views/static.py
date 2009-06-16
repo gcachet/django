@@ -12,7 +12,7 @@ import urllib
 from email.Utils import parsedate_tz, mktime_tz
 
 from django.template import loader
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotModified
+from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotModified, HttpResponseSendFile
 from django.template import Template, Context, TemplateDoesNotExist
 from django.utils.http import http_date
 
@@ -60,10 +60,8 @@ def serve(request, path, document_root=None, show_indexes=False):
                               statobj[stat.ST_MTIME], statobj[stat.ST_SIZE]):
         return HttpResponseNotModified()
     mimetype = mimetypes.guess_type(fullpath)[0] or 'application/octet-stream'
-    contents = open(fullpath, 'rb').read()
-    response = HttpResponse(contents, mimetype=mimetype)
+    response = HttpResponseSendFile(fullpath, content_type=mimetype)
     response["Last-Modified"] = http_date(statobj[stat.ST_MTIME])
-    response["Content-Length"] = len(contents)
     return response
 
 DEFAULT_DIRECTORY_INDEX_TEMPLATE = """
