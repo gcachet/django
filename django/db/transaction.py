@@ -216,7 +216,7 @@ def register_post_commit_callback(callback):
     Register a callback to be executed after the commit
     """
     thread_ident = thread.get_ident()
-    post_commit_callbacks[thread_ident] = 
+    post_commit_callbacks[thread_ident] = \
         post_commit_callbacks.get(thread_ident, [])
     post_commit_callbacks[thread_ident].append(callback)
     
