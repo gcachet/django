@@ -140,7 +140,7 @@ def managed(flag=True):
         if not flag and is_dirty():
             connection._commit()
             set_clean()
-            post_commit.send()
+            post_commit.send(sender=None)
     else:
         raise TransactionManagementError("This code isn't under transaction management")
 
@@ -151,7 +151,7 @@ def commit_unless_managed():
     if not is_managed():
         connection._commit()
         clean_savepoints()
-        post_commit.send()
+        post_commit.send(sender=None)
     else:
         set_dirty()
 
@@ -170,7 +170,7 @@ def commit():
     """
     connection._commit()
     set_clean()
-    post_commit.send()
+    post_commit.send(sender=None)
 
 def rollback():
     """
