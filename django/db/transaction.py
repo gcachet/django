@@ -225,7 +225,7 @@ def _execute_post_commit_callbacks():
     Execute all pending post commit callbacks and clean the queue
     """
     thread_ident = thread.get_ident()
-    for callback in post_commit_callbacks[thread_ident]:
+    for callback in post_commit_callbacks.get(thread_ident, []):
         callback()
     post_commit_callbacks[thread_ident] = []
 
