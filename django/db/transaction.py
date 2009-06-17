@@ -40,6 +40,8 @@ savepoint_state = {}
 # database commit.
 dirty = {}
 
+post_commit_callbacks = {}
+
 def enter_transaction_management(managed=True):
     """
     Enters transaction management for a running thread. It must be balanced with
@@ -138,6 +140,7 @@ def managed(flag=True):
         if not flag and is_dirty():
             connection._commit()
             set_clean()
+            _execute_post_commit_callbacks()
     else:
         raise TransactionManagementError("This code isn't under transaction management")
 
@@ -148,6 +151,7 @@ def commit_unless_managed():
     if not is_managed():
         connection._commit()
         clean_savepoints()
+        _execute_post_commit_callbacks()
     else:
         set_dirty()
 
@@ -165,6 +169,7 @@ def commit():
     Does the commit itself and resets the dirty flag.
     """
     connection._commit()
+    _execute_post_commit_callbacks()
     set_clean()
 
 def rollback():
@@ -205,6 +210,24 @@ def savepoint_commit(sid):
     """
     if thread.get_ident() in savepoint_state:
         connection._savepoint_commit(sid)
+
+def register_post_commit_callback(callback):
+    """
+    Register a callback to be executed after the commit
+    """
+    thread_ident = thread.get_ident()
+    post_commit_callbacks[thread_ident] = 
+        post_commit_callbacks.get(thread_ident, [])
+    post_commit_callbacks[thread_ident].append(callback)
+    
+def _execute_post_commit_callbacks():
+    """
+    Execute all pending post commit callbacks and clean the queue
+    """
+    thread_ident = thread.get_ident()
+    for callback in post_commit_callbacks[thread_ident]:
+        callback()
+    post_commit_callbacks[thread_ident] = []
 
 ##############
 # DECORATORS #
