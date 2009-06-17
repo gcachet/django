@@ -161,6 +161,7 @@ def rollback_unless_managed():
     """
     if not is_managed():
         connection._rollback()
+        _clean_post_commit_callbacks()
     else:
         set_dirty()
 
@@ -169,8 +170,8 @@ def commit():
     Does the commit itself and resets the dirty flag.
     """
     connection._commit()
-    _execute_post_commit_callbacks()
     set_clean()
+    _execute_post_commit_callbacks()
 
 def rollback():
     """
@@ -178,6 +179,7 @@ def rollback():
     """
     connection._rollback()
     set_clean()
+    _clean_post_commit_callbacks()
 
 def savepoint():
     """
@@ -227,6 +229,13 @@ def _execute_post_commit_callbacks():
     thread_ident = thread.get_ident()
     for callback in post_commit_callbacks.get(thread_ident, []):
         callback()
+    _clean_post_commit_callbacks()
+        
+def _clean_post_commit_callbacks():
+    """
+    Clean all pending post commit callbacks
+    """
+    thread_ident = thread.get_ident()
     post_commit_callbacks[thread_ident] = []
 
 ##############
