@@ -98,6 +98,8 @@ class DecoratorsTest(TestCase):
             return "response"
         my_view_cached = cache_page(123)(my_view)
         self.assertEqual(my_view_cached(HttpRequest()), "response")
+        my_view_cached2 = cache_page(123, key_prefix="test")(my_view)
+        self.assertEqual(my_view_cached2(HttpRequest()), "response")
 
     def test_cache_page_old_style(self):
         """
@@ -105,8 +107,10 @@ class DecoratorsTest(TestCase):
         """
         def my_view(request):
             return "response"
-        my_view_cached = cache_page(123, my_view)
+        my_view_cached = cache_page(my_view, 123)
         self.assertEqual(my_view_cached(HttpRequest()), "response")
+        my_view_cached2 = cache_page(my_view, 123, key_prefix="test")
+        self.assertEqual(my_view_cached2(HttpRequest()), "response")
 
 class MethodDecoratorAdapterTests(TestCase):
     def test_auto_adapt_to_methods(self):
